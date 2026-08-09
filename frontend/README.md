@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Study App
 
-## Getting Started
+A collaborative study platform built as a preparation project for our upcoming hackathon.
 
-First, run the development server:
+The goal is to practice building and integrating full-stack features while following consistent development conventions across the team.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+* **Study Chat** — Ask questions, provide answers, and like useful solutions.
+* **Live Study Tracking** — See active group members, study progress, timers, and questions.
+* **Leaderboard** — Rank members based on study progress, answers, and received likes.
+* **Self Study** — Access shared study material and track individual progress.
+
+## Tech Stack
+
+### Frontend
+
+* Next.js
+* JavaScript
+* CSS / Tailwind CSS
+
+### Backend
+
+* Node.js
+* Express
+
+### Database
+
+* PostgreSQL
+* Supabase
+
+### Real-time
+
+* Socket.IO
+
+## Project Structure
+
+```text
+study-app/
+├── frontend/
+│   ├── app/             # Pages/routes
+│   ├── components/      # Reusable UI components
+│   ├── lib/             # API/socket integrations
+│   ├── utils/            # Helper functions
+│   └── public/           # Static assets
+│
+├── backend/
+│   └── ...
+│
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone <repository-url>
+cd study-app
+```
 
-## Learn More
+Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd frontend
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+cd ../backend
+npm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run the frontend and backend separately during development.
 
-## Deploy on Vercel
+## Team Convention
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Each feature should follow the same general architecture:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+Frontend → Express API → PostgreSQL
+```
+
+Feature ownership will rotate during development so every team member works with the frontend, backend, and database.
+
+### Naming Conventions
+
+**Pages / Routes**
+
+Use lowercase kebab-case:
+
+```text
+app/leaderboard/page.js
+app/self-study/page.js
+```
+
+**Components**
+
+Use PascalCase:
+
+```text
+StudyTimer.js
+QuestionCard.js
+LeaderboardTable.js
+```
+
+**Helper Functions / Utilities**
+
+Use camelCase:
+
+```text
+formatTime.js
+calculateScore.js
+```
+
+**Assets**
+
+Store static assets in `public/`:
+
+```text
+public/images/
+public/icons/
+```
+
+Keep implementations simple and understandable. The primary goal is **learning, consistency, and integration**, not production-level complexity.
