@@ -72,7 +72,9 @@ wss.on("connection", (ws) => {
 
     ws.on("message", (message) => {
 
-        const data = JSON.parse(message);
+            const data = JSON.parse(message);
+
+            console.log("Received:", data);
 
 
         if (data.type === "JOIN_SESSION") {
