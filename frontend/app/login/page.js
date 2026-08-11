@@ -29,165 +29,65 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="page">
-            <div className="card">
-                <p className="eyebrow">Study Account</p>
-                <h1>Welcome back</h1>
-                <div className="rule" />
+        <main className="min-h-screen flex items-center justify-center bg-[#f5f4ef] px-6 font-sans">
+            <div className="w-full max-w-[380px] rounded-md border border-[#dcd8ce] bg-white p-10">
+                <p className="mb-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#3a5a6b]">
+                    Study Account
+                </p>
 
-                <p className="subtitle">
+                <h1 className="font-serif text-2xl font-normal text-[#242424]">
+                    Welcome back
+                </h1>
+
+                <div className="my-3.5 h-0.5 w-8 bg-[#3a5a6b]" />
+
+                <p className="mb-7 text-sm leading-relaxed text-[#6b6b6b]">
                     Log in to pick up your study sessions where you left off.
                 </p>
 
-                <form onSubmit={handleLogin}>
-                    <label>
-                        <span>Email</span>
+                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                    <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-[#3f3f3f]">
+                            Email
+                        </span>
                         <input
                             type="email"
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            className="rounded-md border border-[#dcd8ce] bg-[#fafaf7] px-3 py-2.5 text-sm text-[#242424] outline-none transition-colors placeholder:text-[#a3a099] focus:border-[#3a5a6b] focus:bg-white"
                         />
                     </label>
 
-                    <label>
-                        <span>Password</span>
+                    <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-[#3f3f3f]">
+                            Password
+                        </span>
                         <input
                             type="password"
                             placeholder="Your password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            className="rounded-md border border-[#dcd8ce] bg-[#fafaf7] px-3 py-2.5 text-sm text-[#242424] outline-none transition-colors placeholder:text-[#a3a099] focus:border-[#3a5a6b] focus:bg-white"
                         />
                     </label>
 
-                    <button type="submit">Login</button>
+                    <button
+                        type="submit"
+                        className="mt-2 rounded-md border border-[#3a5a6b] bg-[#3a5a6b] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#2f4858] hover:border-[#2f4858] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3a5a6b] focus-visible:outline-offset-2"
+                    >
+                        Login
+                    </button>
                 </form>
 
                 {error && (
-                    <p className="status error">
+                    <p className="mt-5 rounded-md bg-[#fbeceb] px-3 py-2.5 text-sm leading-relaxed text-[#b3261e]">
                         {error}
                     </p>
                 )}
             </div>
-
-            <style jsx>{`
-                .page {
-                    min-height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: #f5f4ef;
-                    padding: 24px;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                        Roboto, Helvetica, Arial, sans-serif;
-                }
-
-                .card {
-                    width: 100%;
-                    max-width: 380px;
-                    background: #ffffff;
-                    border: 1px solid #dcd8ce;
-                    border-radius: 6px;
-                    padding: 40px 36px;
-                }
-
-                .eyebrow {
-                    margin: 0 0 6px 0;
-                    font-size: 11px;
-                    font-weight: 600;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #3a5a6b;
-                }
-
-                h1 {
-                    margin: 0;
-                    font-family: Georgia, "Times New Roman", serif;
-                    font-size: 24px;
-                    font-weight: 400;
-                    color: #242424;
-                }
-
-                .rule {
-                    width: 32px;
-                    height: 2px;
-                    background: #3a5a6b;
-                    margin: 14px 0;
-                }
-
-                .subtitle {
-                    margin: 0 0 28px 0;
-                    font-size: 14px;
-                    line-height: 1.5;
-                    color: #6b6b6b;
-                }
-
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                }
-
-                label {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
-                }
-
-                label span {
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #3f3f3f;
-                }
-
-                input {
-                    font-family: inherit;
-                    font-size: 14px;
-                    padding: 10px 12px;
-                    border: 1px solid #dcd8ce;
-                    border-radius: 4px;
-                    background: #fafaf7;
-                    color: #242424;
-                    outline: none;
-                }
-
-                input:focus {
-                    border-color: #3a5a6b;
-                    background: #ffffff;
-                }
-
-                button {
-                    margin-top: 8px;
-                    font-family: inherit;
-                    font-size: 14px;
-                    font-weight: 600;
-                    padding: 11px 16px;
-                    border: none;
-                    border-radius: 4px;
-                    background: #3a5a6b;
-                    color: #ffffff;
-                    cursor: pointer;
-                }
-
-                button:hover {
-                    background: #2f4858;
-                }
-
-                .status {
-                    margin: 20px 0 0 0;
-                    font-size: 13px;
-                    line-height: 1.5;
-                    padding: 10px 12px;
-                    border-radius: 4px;
-                }
-
-                .status.error {
-                    color: #b3261e;
-                    background: #fbeceb;
-                }
-            `}</style>
         </main>
     );
 }

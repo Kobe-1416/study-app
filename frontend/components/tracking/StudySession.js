@@ -2,19 +2,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import socket from "../../lib/socket";
+import { createSocket } from "../../lib/socket";
 import { supabase } from "../../lib/supabase";
 
 export default function StudySession() {
     const [users, setUsers] = useState([]);
     const [joined, setJoined] = useState(false);
-
     const [user, setUser] = useState(null);
-    const [student, setStudent] = useState(null);
+    const [socket, setSocket] = useState(null);
 
-    // Get authenticated user and their student profile
+    // Get authenticated user and create WebSocket connection
     useEffect(() => {
-        async function getAuthenticatedUser() {
+        async function setupConnection() {
+            // Get authenticated user
             const {
                 data: { user },
                 error: userError
@@ -25,27 +25,34 @@ export default function StudySession() {
                 return;
             }
 
-            setUser(user);
+            // Get current Supabase session
+            const {
+                data: { session },
+                error: sessionError
+            } = await supabase.auth.getSession();
 
-            const { data, error } = await supabase
-                .from("students")
-                .select("id, username, display_name, profile_picture")
-                .eq("id", user.id)
-                .single();
-
-            if (error) {
-                console.error("Error getting student:", error);
+            if (sessionError || !session) {
+                console.error("No active session:", sessionError);
                 return;
             }
 
-            setStudent(data);
+            // Save authenticated user
+            setUser(user);
+
+            // Create authenticated WebSocket connection
+            const accessToken = session.access_token;
+            const newSocket = createSocket(accessToken);
+
+            setSocket(newSocket);
         }
 
-        getAuthenticatedUser();
+        setupConnection();
     }, []);
 
     // Listen for WebSocket updates
     useEffect(() => {
+        if (!socket) return;
+
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
@@ -57,11 +64,16 @@ export default function StudySession() {
         return () => {
             socket.onmessage = null;
         };
-    }, []);
+    }, [socket]);
 
     function joinSession() {
-        if (!user || !student) {
-            console.error("User information is not ready yet.");
+        if (!user) {
+            console.error("User is not ready yet.");
+            return;
+        }
+
+        if (!socket) {
+            console.error("WebSocket is not ready yet.");
             return;
         }
 
@@ -73,11 +85,7 @@ export default function StudySession() {
         socket.send(
             JSON.stringify({
                 type: "JOIN_SESSION",
-                sessionId: "study-room-1",
-                user: {
-                    id: user.id,
-                    name: student.display_name
-                }
+                sessionId: "study-room-1"
             })
         );
 
@@ -85,6 +93,8 @@ export default function StudySession() {
     }
 
     function leaveSession() {
+        if (!socket) return;
+
         if (socket.readyState !== WebSocket.OPEN) return;
 
         socket.send(

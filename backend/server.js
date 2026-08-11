@@ -1,8 +1,11 @@
+
 require("dotenv").config();
 
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const verifyWebSocketToken = require("./middleware/verifyWebSocketToken");
+const supabase = require("./lib/supabase");
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +20,6 @@ app.use(express.json());
 app.use("/api", testRoutes);
 
 const sessions = new Map();
-
 
 function broadcastUsers(sessionId) {
     const session = sessions.get(sessionId);
@@ -41,7 +43,6 @@ function broadcastUsers(sessionId) {
     });
 }
 
-
 function removeUserFromSession(ws) {
     const sessionId = ws.sessionId;
     const userId = ws.userId;
@@ -64,54 +65,76 @@ function removeUserFromSession(ws) {
     }
 }
 
+wss.on("connection", async (ws, req) => {
+    const url = new URL(req.url, "http://localhost:5000");
+    const token = url.searchParams.get("token");
 
-wss.on("connection", (ws) => {
+    if (!token) {
+        console.log("WebSocket rejected: no token");
+        ws.close();
+        return;
+    }
 
-    console.log("WebSocket client connected");
+    const payload = await verifyWebSocketToken(token);
 
+    if (!payload) {
+        console.log("WebSocket rejected: invalid token");
+        ws.close();
+        return;
+    }
 
-    ws.on("message", (message) => {
+    // This is the ID verified from the Supabase JWT.
+    ws.userId = payload.sub;
 
-            const data = JSON.parse(message);
+    console.log("WebSocket authenticated:", ws.userId);
 
-            console.log("Received:", data);
+    ws.on("message", async (message) => {
+        const data = JSON.parse(message);
 
+        console.log("Received:", data);
 
-        if (data.type === "JOIN_SESSION") {
+    if (data.type === "JOIN_SESSION") {
+        const { sessionId } = data;
 
-            const { sessionId, user } = data;
+        const { data: student, error } = await supabase
+            .from("students")
+            .select("display_name")
+            .eq("id", ws.userId)
+            .single();
 
-            if (!sessions.has(sessionId)) {
-                sessions.set(sessionId, new Map());
-            }
-
-            const session = sessions.get(sessionId);
-
-            session.set(user.id, {
-                ...user,
-                ws
-            });
-
-            ws.sessionId = sessionId;
-            ws.userId = user.id;
-
-            broadcastUsers(sessionId);
+        if (error || !student) {
+            console.error("Could not find student:", error);
+            return;
         }
 
+        if (!sessions.has(sessionId)) {
+            sessions.set(sessionId, new Map());
+        }
+
+        const session = sessions.get(sessionId);
+
+        session.set(ws.userId, {
+            id: ws.userId,
+            name: student.display_name,
+            ws
+        });
+
+        ws.sessionId = sessionId;
+
+        broadcastUsers(sessionId);
+    }
 
         if (data.type === "LEAVE_SESSION") {
             removeUserFromSession(ws);
         }
-
     });
-
 
     ws.on("close", () => {
         removeUserFromSession(ws);
     });
-
 });
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
