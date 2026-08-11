@@ -1,29 +1,50 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import socket from "../../lib/socket";
+import { supabase } from "../../lib/supabase";
 
 export default function StudySession() {
     const [users, setUsers] = useState([]);
     const [joined, setJoined] = useState(false);
 
     const [user, setUser] = useState(null);
+    const [student, setStudent] = useState(null);
 
+    // Get authenticated user and their student profile
     useEffect(() => {
-        let storedUser = localStorage.getItem("test-user");
+        async function getAuthenticatedUser() {
+            const {
+                data: { user },
+                error: userError
+            } = await supabase.auth.getUser();
 
-        if (!storedUser) {
-            storedUser = JSON.stringify({
-                id: crypto.randomUUID(),
-                name: `User-${Math.floor(Math.random() * 1000)}`
-            });
+            if (userError || !user) {
+                console.error("No authenticated user:", userError);
+                return;
+            }
 
-            localStorage.setItem("test-user", storedUser);
+            setUser(user);
+
+            const { data, error } = await supabase
+                .from("students")
+                .select("id, username, display_name, profile_picture")
+                .eq("id", user.id)
+                .single();
+
+            if (error) {
+                console.error("Error getting student:", error);
+                return;
+            }
+
+            setStudent(data);
         }
 
-        setUser(JSON.parse(storedUser));
+        getAuthenticatedUser();
     }, []);
 
+    // Listen for WebSocket updates
     useEffect(() => {
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -39,9 +60,8 @@ export default function StudySession() {
     }, []);
 
     function joinSession() {
-
-        if(!user) {
-            console.error("User is not set yet.");
+        if (!user || !student) {
+            console.error("User information is not ready yet.");
             return;
         }
 
@@ -54,7 +74,10 @@ export default function StudySession() {
             JSON.stringify({
                 type: "JOIN_SESSION",
                 sessionId: "study-room-1",
-                user
+                user: {
+                    id: user.id,
+                    name: student.display_name
+                }
             })
         );
 
@@ -75,32 +98,61 @@ export default function StudySession() {
     }
 
     return (
-        <div>
-            <h1>Study Session</h1>
+        <main className="min-h-screen bg-[#f5f4ef] px-6 py-16 font-sans">
+            <div className="mx-auto w-full max-w-[460px]">
+                <p className="mb-2.5 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#3a5a6b]">
+                    Study Room
+                </p>
 
-            {!joined ? (
-                <button onClick={joinSession}>
-                    Join Study Session
-                </button>
-            ) : (
-                <button onClick={leaveSession}>
-                    Leave Study Session
-                </button>
-            )}
+                <h1 className="font-serif text-[28px] font-normal leading-tight text-[#242424]">
+                    Study Session
+                </h1>
 
-            <h2>Online Users</h2>
+                <div className="my-[18px] h-0.5 w-8 bg-[#3a5a6b]" />
 
-            {users.length === 0 ? (
-                <p>No users currently online.</p>
-            ) : (
-                <ul>
-                    {users.map((user) => (
-                        <li key={user.id}>
-                            🟢 {user.name}
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+                <div className="mb-10">
+                    {!joined ? (
+                        <button
+                            onClick={joinSession}
+                            className="rounded-md border border-[#3a5a6b] bg-[#3a5a6b] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#2f4858] hover:border-[#2f4858] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3a5a6b] focus-visible:outline-offset-2"
+                        >
+                            Join Study Session
+                        </button>
+                    ) : (
+                        <button
+                            onClick={leaveSession}
+                            className="rounded-md border border-[#dcd8ce] bg-transparent px-5 py-2.5 text-sm font-semibold text-[#3a5a6b] transition-colors hover:border-[#3a5a6b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3a5a6b] focus-visible:outline-offset-2"
+                        >
+                            Leave Study Session
+                        </button>
+                    )}
+                </div>
+
+                <div className="rounded-md border border-[#dcd8ce] bg-white p-6">
+                    <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#3f3f3f]">
+                        Online Users
+                    </h2>
+
+                    {users.length === 0 ? (
+                        <p className="text-sm text-[#6b6b6b]">
+                            No users currently online.
+                        </p>
+                    ) : (
+                        <ul className="flex flex-col gap-3">
+                            {users.map((user) => (
+                                <li
+                                    key={user.id}
+                                    className="flex items-center gap-2.5 text-sm text-[#242424]"
+                                >
+                                    <span className="h-2 w-2 rounded-full bg-[#3f6b4e]" />
+                                    {user.name}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
+        </main>
     );
 }
+
