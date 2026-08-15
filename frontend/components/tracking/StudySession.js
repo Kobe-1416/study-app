@@ -115,7 +115,7 @@ export default function StudySession() {
                 </p>
 
                 <h1 className="font-serif text-[28px] font-normal leading-tight text-[#242424]">
-                    Study Session
+                    Study Time
                 </h1>
 
                 <div className="my-[18px] h-0.5 w-8 bg-[#3a5a6b]" />
