@@ -2,6 +2,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 const http = require("http");
 const WebSocket = require("ws");
 const verifyWebSocketToken = require("./middleware/verifyWebSocketToken");
@@ -10,6 +11,12 @@ const supabase = require("./lib/supabase");
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+app.use(
+    cors({
+        origin: "http://localhost:3000"
+    })
+);
 
 const testRoutes = require("./routes/testRoutes");
 
@@ -22,10 +29,6 @@ app.use("/api", testRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 
 const PORT = 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
 
 const sessions = new Map();
 
