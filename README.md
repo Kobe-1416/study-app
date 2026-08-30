@@ -127,7 +127,7 @@ Keep implementations simple and understandable. The primary goal is **learning, 
 
 Keep responsibilities separated:
 
-```text
+```text 
 Request
   ↓
 Middleware     # Validate, authenticate, parse, etc.
