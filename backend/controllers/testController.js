@@ -1,4 +1,4 @@
-const supabase = require("../db/supabase");
+const supabase = require("../lib/supabase");
 
 const testDatabase = async (req, res) => {
     const { data, error } = await supabase
