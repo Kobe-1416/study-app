@@ -6,18 +6,22 @@ const http = require("http");
 const WebSocket = require("ws");
 const verifyWebSocketToken = require("./middleware/verifyWebSocketToken");
 const supabase = require("./lib/supabase");
+const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const testRoutes = require("./routes/testRoutes");
+const progressRoutes = require("./routes/progressRoutes");
 
 const PORT = 5000;
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/api", testRoutes);
+app.use("/api/progress", progressRoutes);
 
 const sessions = new Map();
 
