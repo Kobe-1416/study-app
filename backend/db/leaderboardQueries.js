@@ -1,13 +1,13 @@
-const supabase = require("./supabase");
+const supabase = require("../lib/supabase");
 
-async function getResponsesLeaderboard() {
+// Returns [{ id, username, score }] sorted by number of answers, descending.
+async function getLeaderboardByResponses() {
     const { data, error } = await supabase
-        .from("students")
+        .from("leaderboard_students")
         .select(`
             id,
             username,
-            display_name,
-            answers(id)
+            leaderboard_answers ( id )
         `);
 
     if (error) {
@@ -15,27 +15,22 @@ async function getResponsesLeaderboard() {
     }
 
     return data
-        .map((user) => ({
-            id: user.id,
-            username: user.username,
-            display_name: user.display_name,
-            score: user.answers?.length || 0
+        .map((student) => ({
+            id: student.id,
+            username: student.username,
+            score: student.leaderboard_answers.length
         }))
         .sort((a, b) => b.score - a.score);
 }
 
-
-async function getLikesLeaderboard() {
+// Returns [{ id, username, score }] sorted by total points, descending.
+async function getLeaderboardByPoints() {
     const { data, error } = await supabase
-        .from("students")
+        .from("leaderboard_students")
         .select(`
             id,
             username,
-            display_name,
-            answers(
-                id,
-                answer_likes(id)
-            )
+            leaderboard_progress ( points )
         `);
 
     if (error) {
@@ -43,45 +38,18 @@ async function getLikesLeaderboard() {
     }
 
     return data
-        .map((user) => ({
-            id: user.id,
-            username: user.username,
-            display_name: user.display_name,
-            score: (user.answers || []).reduce(
-                (total, answer) =>
-                    total + (answer.answer_likes?.length || 0),
+        .map((student) => ({
+            id: student.id,
+            username: student.username,
+            score: student.leaderboard_progress.reduce(
+                (total, row) => total + row.points,
                 0
             )
         }))
         .sort((a, b) => b.score - a.score);
 }
 
-
-async function getProgressLeaderboard() {
-    const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-            id,
-            username,
-            study_progress(id)
-        `);
-
-    if (error) {
-        throw error;
-    }
-
-    return data
-        .map((user) => ({
-            id: user.id,
-            username: user.username,
-            score: user.study_progress?.length || 0
-        }))
-        .sort((a, b) => b.score - a.score);
-}
-
-
 module.exports = {
-    getResponsesLeaderboard,
-    getLikesLeaderboard,
-    getProgressLeaderboard
+    getLeaderboardByResponses,
+    getLeaderboardByPoints
 };

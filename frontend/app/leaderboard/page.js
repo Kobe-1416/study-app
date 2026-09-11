@@ -9,29 +9,30 @@ export default function Leaderboard() {
     const [error, setError] = useState("");
 
     async function getLeaderboard(type) {
-    try {
-        setLoading(true);
-        setError("");
+        try {
+            setLoading(true);
+            setError("");
 
-        const response = await fetch(
-            `http://localhost:5000/api/leaderboard?type=${type}`
-        );
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/leaderboard?type=${type}`
+            );
 
-        if (!response.ok) {
-            throw new Error("Failed to load leaderboard");
+            console.log(response);
+
+            if (!response.ok) {
+                throw new Error("Failed to load leaderboard");
+            }
+
+            const data = await response.json();
+            setUsers(data);
+        } catch (err) {
+            console.error(err);
+            setError("Unable to load leaderboard.");
+            setUsers([]);
+        } finally {
+            setLoading(false);
         }
-
-        const data = await response.json();
-
-        setUsers(data);
-    } catch (error) {
-        console.error(error);
-        setError("Unable to load leaderboard.");
-        setUsers([]);
-    } finally {
-        setLoading(false);
     }
-}
 
     useEffect(() => {
         getLeaderboard(currentLeaderboard);
@@ -115,7 +116,7 @@ export default function Leaderboard() {
                             <div className="flex flex-col">
                                 {users.map((user, index) => (
                                     <div
-                                        key={user.username}
+                                        key={user.id}
                                         className={`flex items-center justify-between py-4 ${
                                             index !== users.length - 1
                                                 ? "border-b border-[#ebe8e1]"
@@ -137,7 +138,7 @@ export default function Leaderboard() {
 
                                             <div>
                                                 <p className="text-sm font-semibold text-[#242424]">
-                                                    {user.username}
+                                                    {user.username ?? "Unknown student"}
                                                 </p>
 
                                                 <p className="mt-0.5 text-xs text-[#8a8780]">
@@ -149,7 +150,7 @@ export default function Leaderboard() {
                                         {/* Score */}
                                         <div className="text-right">
                                             <p className="font-serif text-xl text-[#242424]">
-                                                {user.score}
+                                                {user.score ?? 0}
                                             </p>
 
                                             <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-[#8a8780]">

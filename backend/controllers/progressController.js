@@ -1,15 +1,16 @@
-const supabase = require("../lib/supabase"); // adjust path if yours is in /db
+const supabase = require("../lib/supabase");
 
 async function markSectionComplete(req, res) {
-  const { section_id } = req.body;
-  const userId = req.userId; // see Bite 3
-  
-  
+  const { section_id, user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
 
   const { data, error } = await supabase
     .from("study_progress")
     .insert({
-      user_id: userId,
+      user_id,
       section_id,
     })
     .select()

@@ -7,21 +7,14 @@ const http = require("http");
 const WebSocket = require("ws");
 const verifyWebSocketToken = require("./middleware/verifyWebSocketToken");
 const supabase = require("./lib/supabase");
-const cors = require("cors");
+
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(
-    cors({
-        origin: "http://localhost:3000"
-    })
-);
-
 const testRoutes = require("./routes/testRoutes");
 const progressRoutes = require("./routes/progressRoutes");
-
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 
 app.use(cors());
@@ -29,7 +22,6 @@ app.use(express.json());
 
 app.use("/api", testRoutes);
 app.use("/api/progress", progressRoutes);
-
 app.use("/api/leaderboard", leaderboardRoutes);
 
 const PORT = 5000;

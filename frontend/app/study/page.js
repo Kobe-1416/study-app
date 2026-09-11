@@ -16,6 +16,7 @@ export default function Home() {
       body: JSON.stringify({ section_id: currentSection, user_id: 1 }),
     });
 
+
     if (res.ok) {
       setCurrentSection((s) => (s < 20 ? s + 1 : s));
     } else {
