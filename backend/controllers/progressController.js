@@ -1,27 +1,34 @@
-const supabase = require("../lib/supabase");
+// backend/controllers/progressController.js
+const {
+  saveCompletedSection,
+  countCompletedSections,
+} = require("../db/progressQueries");
+const { TOTAL_SECTIONS } = require("../lib/constants");
 
 async function markSectionComplete(req, res) {
   const { section_id, user_id } = req.body;
 
-  if (!user_id) {
-    return res.status(400).json({ error: "user_id is required" });
-  }
-
-  const { data, error } = await supabase
-    .from("study_progress")
-    .insert({
-      user_id,
-      section_id,
-    })
-    .select()
-    .single();
-
-  if (error) {
+  try {
+    const saved = await saveCompletedSection(user_id, section_id);
+    res.status(201).json({ message: "Saved", progress: saved });
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Failed to save progress" });
+    res.status(500).json({ error: "Failed to save progress" });
   }
-
-  res.status(201).json({ message: "Saved", progress: data });
 }
 
-module.exports = { markSectionComplete };
+async function getProgress(req, res) {
+  const userId = Number(req.query.user_id);
+
+  try {
+    const completed = await countCompletedSections(userId);
+    const percent = Math.round((completed / TOTAL_SECTIONS) * 100);
+
+    res.json({ completed, total: TOTAL_SECTIONS, percent });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch progress" });
+  }
+}
+
+module.exports = { markSectionComplete, getProgress };
