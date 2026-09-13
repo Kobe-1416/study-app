@@ -7,6 +7,9 @@ export default function Leaderboard() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [selectedId, setSelectedId] = useState(null);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [studentLoading, setStudentLoading] = useState(false);
 
     async function getLeaderboard(type) {
         try {
@@ -16,8 +19,6 @@ export default function Leaderboard() {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/leaderboard?type=${type}`
             );
-
-            console.log(response);
 
             if (!response.ok) {
                 throw new Error("Failed to load leaderboard");
@@ -34,9 +35,30 @@ export default function Leaderboard() {
         }
     }
 
+    async function getStudent(id) {
+        try {
+            setStudentLoading(true);
+            setSelectedStudent(null);
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/leaderboard/${id}`
+            );
+            if (!res.ok) throw new Error("Failed to load student");
+            setSelectedStudent(await res.json());
+        } catch (err) {
+            console.error(err);
+            setSelectedStudent(null);
+        } finally {
+            setStudentLoading(false);
+        }
+    }
+
     useEffect(() => {
         getLeaderboard(currentLeaderboard);
     }, [currentLeaderboard]);
+
+    useEffect(() => {
+        if (selectedId) getStudent(selectedId);
+    }, [selectedId]);
 
     return (
         <main className="min-h-screen bg-[#f5f4ef] px-6 py-12 font-sans">
@@ -117,7 +139,8 @@ export default function Leaderboard() {
                                 {users.map((user, index) => (
                                     <div
                                         key={user.id}
-                                        className={`flex items-center justify-between py-4 ${
+                                        onClick={() => setSelectedId(user.id)}
+                                        className={`flex cursor-pointer items-center justify-between py-4 transition-colors hover:bg-[#faf9f5] ${
                                             index !== users.length - 1
                                                 ? "border-b border-[#ebe8e1]"
                                                 : ""
@@ -165,6 +188,72 @@ export default function Leaderboard() {
                         )}
                     </div>
                 </div>
+
+                {/* 👇 MODAL — sibling of the card, inside the max-w wrapper */}
+                {selectedId && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+                        onClick={() => { setSelectedId(null); setSelectedStudent(null); }}
+                    >
+                        <div
+                            className="w-full max-w-[400px] rounded-md border border-[#dcd8ce] bg-white p-6"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {studentLoading && (
+                                <p className="text-sm text-[#6b6b6b]">Loading…</p>
+                            )}
+
+                            {!studentLoading && selectedStudent && (
+                                <>
+                                    <p className="mb-1 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#3a5a6b]">
+                                        Student
+                                    </p>
+
+                                    <h2 className="font-serif text-2xl font-normal text-[#242424]">
+                                        {selectedStudent.username}
+                                    </h2>
+
+                                    <div className="my-3 h-0.5 w-8 bg-[#3a5a6b]" />
+
+                                    <div className="mt-4 space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-[11px] uppercase tracking-[0.08em] text-[#8a8780]">
+                                                School
+                                            </span>
+                                            <span className="text-sm font-semibold text-[#242424]">
+                                                {selectedStudent.school}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-[11px] uppercase tracking-[0.08em] text-[#8a8780]">
+                                                Points
+                                            </span>
+                                            <span className="text-sm font-semibold text-[#242424]">
+                                                {selectedStudent.points}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-[11px] uppercase tracking-[0.08em] text-[#8a8780]">
+                                                Responses
+                                            </span>
+                                            <span className="text-sm font-semibold text-[#242424]">
+                                                {selectedStudent.responses}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => { setSelectedId(null); setSelectedStudent(null); }}
+                                        className="mt-6 w-full rounded-md bg-[#3a5a6b] py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2d4552]"
+                                    >
+                                        Close
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </main>
     );
